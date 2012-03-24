@@ -38,6 +38,21 @@ public:
 	{
 	}
 
+	static inline rflags read()
+	{
+		rflags x;
+		asm volatile ("pushfq; popq %0"
+			: "=m" (x.value));
+		return x;
+	}
+
+	static inline void write(rflags x)
+	{
+		asm volatile ("pushq %0; popfq"
+			:
+			: "m" (x.value));
+	}
+
 private:
 	template<unsigned int i, unsigned int n = 1>
 	uint64_t read() const

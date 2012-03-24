@@ -38,6 +38,21 @@ public:
 	{
 	}
 
+	static inline eflags read()
+	{
+		eflags x;
+		asm volatile ("pushfl; popl %0"
+			: "=m" (x.value));
+		return x;
+	}
+
+	static inline void write(eflags x)
+	{
+		asm volatile ("pushl %0; popfl"
+			:
+			: "m" (x.value));
+	}
+
 private:
 	template<unsigned int i, unsigned int n = 1>
 	uint32_t read() const
