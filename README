@@ -1,0 +1,69 @@
+libx86 -- C++ interface to x86/x86-64 registers and data structures
+===================================================================
+
+This library provides C++ interfaces for manipulating x86 and x86_64
+register types and data structures. For example, to set the direction
+flag in the hardware rflags register, you can use the following code:
+
+	using namespace x86_64;
+	rflags::write(rflags::read().direction_flag(true));
+
+You can chain multiple changes like this:
+
+	rflags::write(rflags::read()
+		.direction_flag(true)
+		.zero_flag(false)
+		.overflow_flag(false));
+
+If you simply want to read different parts of the register (without
+actually reading it from the hardware more than once), you can store
+the value in a variable:
+
+	rflags x = rflags::read();
+	printf("carry flag = %d\n", x.carry_flag());
+	printf("parity flag = %d\n", x.parity_flag());
+
+If you're an operating system kernel, you may wish to inspect a (paused)
+thread's rflags that were pushed to the stack during interrupt or
+system call entry. Then you would typically have a struct like this:
+
+	struct task_state {
+		...
+		uint64_t rsp;
+		uint64_t rflags;
+		uint64_t rip;
+		...
+	};
+
+Since x86_64::rflags is always a 64-bit POD (XXX: should be, anyway), you
+can embed it in other structs and manipulate it as if it was the actual
+hardware register:
+
+	struct task_state {
+		...
+		uint64_t rsp;
+		x86_64::rflags rflags;
+		uint64_t rip;
+		...
+	};
+
+	...
+
+	void interrupt(struct task_state &current_task)
+	{
+		...
+		printf("interrupted task:\n");
+		printf("carry flag = %d\n", current_task.rflags.carry_flag());
+		printf("parity flag = %d\n", current_task.rflags.parity_flag());
+		...
+	}
+
+
+Contact
+=======
+
+Please send ideas, suggestions, patches, etc. to
+Vegard Nossum <vegard.nossum@gmail.com>.
+
+Disclaimer: The library is in a _very_ early stage. Don't expect it to be
+able to do anything that I haven't needed to do with it myself already.
